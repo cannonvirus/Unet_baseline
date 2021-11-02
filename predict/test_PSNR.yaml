@@ -1,0 +1,5 @@
+input_path: "/works/Anormal_Unet/test_set"
+model_path: "/works/Anormal_Unet/checkpoints/Point_Detect_ver2_400.pth"
+scale: 240
+threshold: 0.5
+bgr2rgb: True

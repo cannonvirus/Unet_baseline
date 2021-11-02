@@ -1,0 +1,20 @@
+
+# load txt
+load_data:
+  det_folder: "/works/Unet_test/project_output/det/det_video1.txt"
+  det_format: ".txt"
+  img_folder: "/DL_data_big/JSH_Tracking_dataset_Pig/1"
+  img_format: ".jpg"
+  integrity_check: False
+  width_roi_padding: 0.05
+  height_roi_padding: 0.0
+  save_img_scale: 96
+  time_series: 4
+  float32: True
+  model_path: "/works/Unet_test/checkpoints/CP_epoch400.pth"
+  output_img_path: "/works/Unet_test/project_output/output_img_th03"
+  psnr: 30
+  prob_threshold: 0.3
+  devide_mode: "prob"
+
+

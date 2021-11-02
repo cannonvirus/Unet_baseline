@@ -1,0 +1,19 @@
+extract_frame:
+  video_path: /works/Anormal_Unet/AIGC_data_utils/pretrain_video/drone_FPV_24.mp4
+  out_path: /works/Anormal_Unet/AIGC_data_utils/pretrain_set
+  save_frame_count: 15
+
+normal_making_ver2:
+  input_path: /works/Anormal_Unet/AIGC_data_utils/pretrain_set
+  output_path: /works/Anormal_Unet/AIGC_pretrain_data
+  transform_num: 10
+  hallway_num: 5
+  origin_size: 240
+  crop_size: 120
+
+anormal_making_ver2:
+  input_path: /works/Anormal_Unet/AIGC_data_utils/pretrain_set
+  output_path: /works/Anormal_Unet/AIGC_pretrain_data
+  origin_size: 240
+  crop_size: 120
+  making_number: 70000

@@ -1,0 +1,7 @@
+video_path: /works/Anormal_Unet/AIGC_data_utils/set01_drone01.mp4
+snap_shot_path: /works/Anormal_Unet/test_set/0_06735_cj_ss/crop.jpg
+model_path: /works/Anormal_Unet/checkpoints/Entry_Double_Up_500.pth
+scale: 240
+threshold: 0.5
+bgr2rgb: True
+save_frame_count: 15

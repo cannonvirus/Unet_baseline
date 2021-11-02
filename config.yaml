@@ -1,0 +1,22 @@
+
+input_img_path: /works/Anormal_Unet/AIGC_pretrain_data
+checkpoint_path: './checkpoints/'
+# load_pretrain: "/works/Anormal_Unet/checkpoints/Point_Detect_ver2_double_800.pth"
+load_pretrain: False
+input_time_series: 0
+epoch: 6000
+batch_size: 512
+learning_rate: 0.1
+num_worker: 32
+scale: 240
+validation_ratio: 0.1
+save_checkpoints: True
+amp: False
+save_model_epoch: 100
+freezing_mode: False
+weight:
+  loss_img: 0.7
+  loss_anormal: 0.3
+half_mode: False
+horovod: True # multi-gpu train
+focal_loss: True
