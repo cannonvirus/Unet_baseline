@@ -4,16 +4,16 @@ extract_frame:
   save_frame_count: 15
 
 normal_making_ver2:
-  input_path: /works/Anormal_Unet/AIGC_data_utils/pretrain_set
-  output_path: /works/Anormal_Unet/AIGC_pretrain_data
-  transform_num: 10
+  input_path: /works/Anormal_Unet/AIGC_data_utils/classification_15f_high
+  output_path: /works/Anormal_Unet/AIGC_train_data_o512_c512
+  transform_num: 60
   hallway_num: 5
-  origin_size: 240
-  crop_size: 120
+  origin_size: 512
+  crop_size: 512
 
 anormal_making_ver2:
-  input_path: /works/Anormal_Unet/AIGC_data_utils/pretrain_set
-  output_path: /works/Anormal_Unet/AIGC_pretrain_data
-  origin_size: 240
-  crop_size: 120
-  making_number: 70000
+  input_path: /works/Anormal_Unet/AIGC_data_utils/classification_15f_high
+  output_path: /works/Anormal_Unet/AIGC_train_data_o512_c512
+  origin_size: 512
+  crop_size: 512
+  making_number: 140000

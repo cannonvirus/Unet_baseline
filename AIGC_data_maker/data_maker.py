@@ -61,16 +61,24 @@ def normal_making_ver2(config):
             img = cv2.imread(img_path)
 
             h_, w_, c_ = img.shape
-            w_h_ratio = round(w_/h_,2)
+            # w_h_ratio = round(w_/h_,2)
+            w_h_ratio = random.randrange(80,121) / 100
 
             img_resized = cv2.resize(img, (config_nm['origin_size'], config_nm['origin_size']))
             inher_number = os.path.splitext(os.path.split(img_path)[1])[0]
 
             if "hallway" in folder:
                 for idx in range(config_nm['hallway_num']):
-                    transform = A.Compose([A.RandomSizedCrop(min_max_height=[600,900], 
+                    transform = A.Compose([A.RandomSizedCrop(min_max_height=[min(h_/2, 600),int(h_*0.8)], 
                         height=config_nm['crop_size'], 
-                        width=config_nm['crop_size'], w2h_ratio=w_h_ratio)])
+                        width=config_nm['crop_size'], 
+                        w2h_ratio=w_h_ratio), 
+                        A.HorizontalFlip(p=0.4),
+                        A.VerticalFlip(p=0.4),
+                        A.Rotate(limit=[40,40], border_mode=1, p=0.3),
+                        A.RGBShift(r_shift_limit = [-10,-10], g_shift_limit = [-20,-20], b_shift_limit = [10,10], p=0.2),
+                        A.Downscale(scale_min=0.7, scale_max=0.7, p=0.2),
+                        A.Blur(blur_limit=[4,4], p=0.3)])
                     transformed = transform(image=img)
                     f_name_ = os.path.join(config_nm['output_path'], "1_" + os.path.basename(folder) + "_" + inher_number + "_" + str(idx).zfill(2))
                     if not os.path.isdir(f_name_):
@@ -128,7 +136,8 @@ def anormal_making_ver2(config):
         cropped_img = cv2.imread(cropped_path)
 
         h_, w_, c_ = cropped_img.shape
-        w_h_ratio = round(w_/h_,2)
+        # w_h_ratio = round(w_/h_,2)
+        w_h_ratio = random.randrange(80,121) / 100
 
         img_resized = cv2.resize(origin_img, (config_nm['origin_size'], config_nm['origin_size']))
 
@@ -143,7 +152,7 @@ def anormal_making_ver2(config):
                         A.Downscale(scale_min=0.7, scale_max=0.7, p=0.2),
                         A.Blur(blur_limit=[4,4], p=0.3)])
         transformed = transform(image=cropped_img)
-        f_name_ = os.path.join(config_nm['output_path'], "0_" + str(idx+20000).zfill(5) + "_" + dot_f1 + "_" + dot_f2)
+        f_name_ = os.path.join(config_nm['output_path'], "0_" + str(idx).zfill(5) + "_" + dot_f1 + "_" + dot_f2)
         if not os.path.isdir(f_name_):
             os.mkdir(f_name_)
 

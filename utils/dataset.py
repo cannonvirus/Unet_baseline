@@ -13,9 +13,10 @@ import re
 import cv2
 
 class BasicDataset(Dataset):
-    def __init__(self, imgs_dir, scale=128, time_series=4, mask_suffix=''):
+    def __init__(self, imgs_dir, scale=512, sub_scale=64, time_series=4, mask_suffix=''):
         self.imgs_dir = imgs_dir
         self.scale = scale
+        self.scale_sub = sub_scale
         self.time_series = time_series
         self.mask_suffix = mask_suffix
         
@@ -238,8 +239,8 @@ class BasicDataset(Dataset):
         background_img = cv2.imread(background_path)
         crop_img = cv2.imread(crop_img_path)
 
-        img_cc = self.preprocess(img=background_img, scale=240)
-        crp_cc = self.preprocess(img=crop_img, scale=120)
+        img_cc = self.preprocess(img=background_img, scale=self.scale)
+        crp_cc = self.preprocess(img=crop_img, scale=self.scale_sub)
 
         return {
             'image': img_cc,

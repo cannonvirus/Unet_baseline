@@ -20,6 +20,7 @@ from utils.dataset import BasicDataset
 import cv2
 import torch.nn as nn
 import math
+from resnet import *
 
 def predict_img(net,
                 background,
@@ -28,12 +29,22 @@ def predict_img(net,
                 scale_factor=1,
                 out_threshold=0.5):
     net.eval()
-    img_stack = BasicDataset.two_img_preprocess(background, crop_img, scale_factor)
+    background_img = cv2.imread(background)
+    crop_img = cv2.imread(crop_img)
 
-    img_stack = img_stack.unsqueeze(0)
-    img_stack = img_stack.to(device=device, dtype=torch.float32)
+    img_cc = BasicDataset.preprocess(img=background_img, scale=256)
+    crp_cc = BasicDataset.preprocess(img=crop_img, scale=128)
+
+
+    # img_stack = BasicDataset.two_img_preprocess(background, crop_img, scale_factor)
+
+    img_cc = img_cc.unsqueeze(0)
+    img_cc = img_cc.to(device=device, dtype=torch.float32)
+
+    crp_cc = crp_cc.unsqueeze(0)
+    crp_cc = crp_cc.to(device=device, dtype=torch.float32)
     
-    prod_anormal = net(img_stack)
+    prod_anormal = net(img_cc, crp_cc)
     
     return prod_anormal
 
@@ -73,23 +84,10 @@ def Mean_PSNR(config, model, device):
     for folder in test_folders:
         file_path_ = os.path.join(config['input_path'], folder)
         # model_input = [os.path.join(file_path_,i) for i in sorted(listdir(file_path_))][:-1]
-        prod_anormal = predict_img(net=model, background=os.path.join(file_path_, "origin.jpg"), crop_img=os.path.join(file_path_, "crop.jpg"), scale_factor=config['scale'], out_threshold=config['threshold'], device=device)
-        
-        # T_img = cv2.imread([os.path.join(file_path_,i) for i in sorted(listdir(file_path_))][-1])
-        # true_mask = BasicDataset.preprocess(T_img, config['scale']).to(device=device)
-        
-        # #* PSNR
-        # mse_loss = criterion(true_mask, torch.squeeze(mask)).cpu().detach().numpy()
-        # psnr = 20 * math.log10(1/np.sqrt(mse_loss))
-        # sum_of_psnr += psnr
-        
-        # if psnr > max_psnr:
-        #     max_psnr = psnr
-        #     max_folder = file_path_
-            
-        # if psnr < min_psnr:
-        #     min_psnr = psnr
-        #     min_folder = file_path_
+        prod_anormal = predict_img(net=model, background=os.path.join(file_path_, "origin.jpg"), \
+                crop_img=os.path.join(file_path_, "crop.jpg"), \
+                scale_factor=config['scale'], out_threshold=config['threshold'], device=device)
+
         
         #* anormal_prob
         anb_prob = prod_anormal.cpu().detach().numpy()[0][0]
@@ -160,9 +158,12 @@ def Mean_PSNR(config, model, device):
 if __name__ == "__main__":
     config = get_yaml("/works/Anormal_Unet/predict/test_PSNR.yaml")
     # net = UNet_ENC_Double(n_channels=3, n_classes=3, half_model=False)
-    net = UNet_ENC(n_channels=6, n_classes=3, half_model=False)
+    # net = UNet_ENC(n_channels=6, n_classes=3, half_model=False)
+    # net = UNet_AIGC_ver2(n_channels=3, n_classes=3, bilinear=True)
+    net = ResNet(Bottleneck, [3, 4, 6, 3])
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:7')
     net.to(device=device)
     net.load_state_dict(torch.load(config['model_path'], map_location=device))
     

@@ -4,8 +4,7 @@ import torch.nn.functional as F
 import torch
 from torchsummary import summary
 
-# from .unet_parts import *
-from unet_parts import *
+from .unet_parts import *
 
 
 class UNet(nn.Module):
@@ -318,76 +317,63 @@ class UNet_AIGC_ver2(nn.Module):
         self.bilinear = bilinear
         
         # origin layer
-        self.inc = DoubleConv(n_channels, 4)
-        self.down1 = Down(4, 8)
-        self.down2 = Down(8, 16)
-        self.down3 = Down(16, 32)
-        # factor = 2 if bilinear else 1
-        # self.down4 = Down(32, 64 // factor)
-        # self.fc1 = torch.nn.Linear(512*15*15, 512, bias=True) # scale : 240
-
+        self.inc = DoubleConv(n_channels, 64)
+        self.down1 = Down(64, 128)
+        self.down2 = Down(128, 256)
+        self.down3 = Down(256, 512)
+        factor = 2 if bilinear else 1
+        self.down4 = Down(512, 1024 // factor)
+        
         # crop layer
-        self.inc_c = DoubleConv(n_channels, 4)
-        self.down1_c = Down(4, 8)
-        self.down2_c = Down(8, 16)
-        self.down3_c = Down(16, 32)
-        # factor_c = 2 if bilinear else 1
-        # self.down4_c = Down(32, 64 // factor_c)
-        # self.fc1_c = torch.nn.Linear(512*7*7, 512, bias=True) # scale : 120
+        self.inc_c = DoubleConv(n_channels, 64)
+        self.down1_c = Down(64, 128)
+        self.down2_c = Down(128, 256)
+        self.down3_c = Down(256, 512)
+        factor_c = 2 if bilinear else 1
+        self.down4_c = Down(512, 1024 // factor_c)
 
-
-        self.fc_1s = torch.nn.Linear(64*60*60, 512, bias=True)
-        self.fc_2s = torch.nn.Linear(64*1800, 512, bias=True)
-        self.fc_3s = torch.nn.Linear(64*900, 512, bias=True)
-        self.fc_4s = torch.nn.Linear(64*450, 512, bias=True)
-
-        self.fc_out = torch.nn.Linear(512*4, 512, bias=True)
-        self.dropout = torch.nn.Dropout(0.2)
+        self.fc1 = torch.nn.Linear(512*16*16, 512, bias=True)
         self.relu = nn.ReLU()
-
-        self.out = torch.nn.Linear(512,1)
+        self.fc2 = torch.nn.Linear(512, 1, bias=True)
+        self.dropout1 = torch.nn.Dropout(0.2)
+        self.dropout2 = torch.nn.Dropout(0.2)
         self.sigmoid = torch.nn.Sigmoid()
         
 
     def forward(self, x, y):
 
         x1 = self.inc(x)
-        x2 = self.down1(x1)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        # x5 = self.down4(x4)
-        # binary_x1 = self.fc1(x5.view(x5.size(0), -1)) # 240
-
         y1 = self.inc_c(y)
         y1_re = y1.repeat(1,1,2,2)
-        feature1_conv = torch.abs(x1 - y1_re)
-        ff1 = self.fc_1s(feature1_conv.view(feature1_conv.size(0), -1))
-        # feature1_conv.view(feature1_conv.size(0), -1)
+        xy1 = x1 + y1_re
 
+        x2 = self.down1(xy1)
         y2 = self.down1_c(y1)
         y2_re = y2.repeat(1,1,2,2)
-        feature2_conv = torch.abs(x2 - y2_re)
-        ff2 = self.fc_2s(feature2_conv.view(feature2_conv.size(0), -1))
-        # feature2_conv.view(feature2_conv.size(0), -1)
+        xy2 = x2 + y2_re
 
+        x3 = self.down2(xy2)
         y3 = self.down2_c(y2)
         y3_re = y3.repeat(1,1,2,2)
-        feature3_conv = torch.abs(x3 - y3_re)
-        ff3 = self.fc_3s(feature3_conv.view(feature3_conv.size(0), -1))
+        xy3 = x3 + y3_re
 
+        x4 = self.down3(xy3)
         y4 = self.down3_c(y3)
         y4_re = y4.repeat(1,1,2,2)
-        feature4_conv = torch.abs(x4 - y4_re)
-        ff4 = self.fc_4s(feature4_conv.view(feature4_conv.size(0), -1))
+        xy4 = x4 + y4_re
 
-        feature_out = torch.cat([ff1, ff2, ff3, ff4], dim=1)
-        feature_out_step1 = self.fc_out(feature_out)
-        feature_out_step1d = self.dropout(feature_out_step1)
-        feature_out_step1dr = self.relu(feature_out_step1d)
+        x5 = self.down4(xy4)
+        y5 = self.down4_c(y4)
+        y5_re = y5.repeat(1,1,2,2)
+        xy5 = x5 + y5_re
 
-        result_ = self.sigmoid( self.out(feature_out_step1dr) ) 
+        binary_x1 = self.fc1(xy5.view(xy5.size(0), -1))
+        binary_x1_dr = self.dropout1(binary_x1)
+        binary_x1_rl = self.relu(binary_x1_dr)
+        binary_x1_rl_dr = self.dropout2(binary_x1_rl)
+        binary_x2 = self.sigmoid( self.fc2(binary_x1_rl_dr) ) 
 
-        return result_
+        return binary_x2
 
 if __name__ == "__main__":
     net = UNet_AIGC_ver2(n_channels=3, n_classes=3, bilinear=True, half_model=False, scale = 240).to("cuda")

@@ -13,32 +13,33 @@ def eval_net(net, loader, device, batch_size, freeze_mode, config):
     # mask_type = torch.float32 if net.n_classes == 1 else torch.long
     n_val = len(loader)  # the number of batch
     tot = 0
-    criterion = nn.MSELoss().to(device)
-    criterion_BCE = nn.BCELoss().to(device)
-    criterion_Focal = FocalLoss().to(device)
+    if config['loss_func'] == "MSE":
+        criterion = nn.MSELoss().to(device)
+    elif config['loss_func'] == "BCE":
+        criterion = nn.BCELoss().to(device)
+    else:
+        criterion = FocalLoss().to(device)
 
     with tqdm(total=n_val, desc='Validation round', unit='batch', leave=False) as pbar:
         for batch in loader:
-            imgs, crops, true_labels = batch['image'], batch['crop'], batch['label']
-            # imgs, true_labels = batch['image'], batch['label']
+
+            #! Model Inference & Loss Calculation
+            if config['input_img_number'] == 1:
+                imgs, true_labels = batch['image'], batch['label']
+            else:
+                imgs, crops, true_labels = batch['image'], batch['crop'], batch['label']
+                crops = batch['crop'].to(device=device, dtype=torch.float32)
             
             imgs = imgs.to(device=device, dtype=torch.float32)
-            crops = crops.to(device=device, dtype=torch.float32)
             true_labels = true_labels.to(device=device, dtype=torch.float32)
 
             with torch.no_grad():
-                anormal_pred = net(imgs, crops)
-                loss = criterion_BCE(anormal_pred, true_labels.reshape(-1,1))
-                
-                # if not freeze_mode:
-                #     loss = criterion_BCE(anormal_pred, true_labels.reshape(-1,1))
+                if config['input_img_number'] == 1:
+                    anormal_pred = net(imgs)
+                else:
+                    anormal_pred = net(imgs, crops)
 
-                # else:
-                #     if config['focal_loss']:
-                #         loss = criterion_Focal(anormal_pred, true_labels.reshape(-1,1))
-                #     else:
-                #         loss = criterion_BCE(anormal_pred, true_labels.reshape(-1,1))
-
+                loss = criterion(anormal_pred, true_labels.reshape(-1,1))
 
             tot += loss
             pbar.update()

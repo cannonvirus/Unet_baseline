@@ -1,5 +1,5 @@
-input_path: "/works/Anormal_Unet/test_set"
-model_path: "/works/Anormal_Unet/checkpoints/Point_Detect_ver2_400.pth"
-scale: 240
-threshold: 0.5
+input_path: /works/Anormal_Unet/AIGC_maintest_data
+model_path: /works/Anormal_Unet/checkpoints/Entry_resnet50_c128_30.pth
+scale: 256
+threshold: 0.8
 bgr2rgb: True
